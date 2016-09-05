@@ -1,6 +1,25 @@
 # container-tx
 
-A re-implementation of [container-transform](https://github.com/micahhausler/container-transform) in go.
+container-tx is a small utility to transform various docker container
+formats to one another.
+
+Currently, container-tx can accept and output to:
+
+* Docker-compose configuration files
+* ECS task definitions
+
+and it can output to:
+
+* docker cli run commmand
+
+Future support is planned for:
+
+* Marathon Application Definitions or Groups of Applications
+* Chronos Task Definitions
+* Kubernetes Deployment spec
+* Systemd unit files (output only)
+
+This is a re-implementation of [container-transform](https://github.com/micahhausler/container-transform) in go.
 
 ## Usage
 
