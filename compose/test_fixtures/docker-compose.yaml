@@ -1,0 +1,61 @@
+version: '2.0'
+services:
+  web:
+    entrypoint: /bin/myapp
+    command: -port 8080
+    cpu_shares: 200
+    dns:
+    - 8.8.8.8
+    dns_search:
+    - cluster.local
+    environment:
+      PGHOST: database.cluster.local
+      PGUSER: postgres
+    expose:
+    - 8080
+    hostname: webserver
+    image: "alpine"
+    labels:
+      com.example.description: "Accounting webapp"
+      com.example.department: "Finance"
+      com.example.label-with-empty-value: ""
+    logging:
+      driver: gelf
+      options:
+        tag: web
+        gelf-address: "udp://127.0.0.1:12900"
+    mem_limit: 67108864
+    networks:
+    - some-network
+    - other-network
+    network_mode: bridge
+    pid: host
+    ports:
+    - "127.0.0.1:5000:5000"
+    - "5000:5000"
+    - "5000"
+    - "53:53/udp"
+    privileged: true
+    user: root
+    volumes_from:
+    - worker
+    volumes:
+    - "/etc/ssl"
+    - "/etc/ssl:/etc/ssl:ro"
+    - .:/code
+  worker:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.worker
+      args:
+        env: prod
+    labels:
+    - com.example.description=Accounting webapp
+    - com.example.department=Finance
+    - com.example.label-with-empty-value
+  worker2:
+    build: "./app"
+    labels:
+    - com.example.description=Accounting webapp
+    - com.example.department=Finance
+    - com.example.label-with-empty-value

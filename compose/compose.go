@@ -12,32 +12,38 @@ import (
 
 // UnmarshalYAML implements a custom unmarshal to accommodate both of compose's
 // string and struct formats
-func (cbc *ComposeBuildContext) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	err := unmarshal(*cbc)
+func (cb *ComposeBuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var cbc ComposeBuildContext
+	err := unmarshal(&cbc)
 	if err != nil {
 		var ctx string
-		err = unmarshal(&ctx)
+		err := unmarshal(&ctx)
 		if err != nil {
 			return err
 		}
 		cbc.Context = ctx
 	}
+	cb.Ctx = cbc
 	return nil
+}
+
+type ComposeBuild struct {
+	Ctx ComposeBuildContext
 }
 
 // ComposeBuildContext is a build context type for Compose
 type ComposeBuildContext struct {
-	Context    string            `yaml:"context" `
-	Dockerfile string            `yaml:"dockerfile" `
-	Args       map[string]string `yaml:"args" `
+	Context    string            `yaml:"context,omitempty"`
+	Dockerfile string            `yaml:"dockerfile,omitempty"`
+	Args       map[string]string `yaml:"args,omitempty"`
 }
 
 func (c ComposeContainer) ingestBuild() *transform.BuildContext {
 	if c.Build != nil {
 		bc := &transform.BuildContext{
-			Context:    c.Build.Context,
-			Dockerfile: c.Build.Dockerfile,
-			Args:       c.Build.Args,
+			Context:    c.Build.Ctx.Context,
+			Dockerfile: c.Build.Ctx.Dockerfile,
+			Args:       c.Build.Ctx.Args,
 		}
 		return bc
 	}
@@ -46,10 +52,12 @@ func (c ComposeContainer) ingestBuild() *transform.BuildContext {
 
 func (c *ComposeContainer) emitBuild(in *transform.BuildContext) {
 	if in != nil {
-		c.Build = &ComposeBuildContext{
-			Context:    in.Context,
-			Dockerfile: in.Dockerfile,
-			Args:       in.Args,
+		c.Build = &ComposeBuild{
+			ComposeBuildContext{
+				Context:    in.Context,
+				Dockerfile: in.Dockerfile,
+				Args:       in.Args,
+			},
 		}
 	}
 }
@@ -237,37 +245,37 @@ func (c *ComposeContainer) emitVolumes(vols *transform.IntermediateVolumes) {
 
 // ComposeContainer is a type for deserializing docker-compose containers
 type ComposeContainer struct {
-	Build        *ComposeBuildContext `yaml:"build,omitempty" `
-	Command      string               `yaml:"command,omitempty" `
-	CPU          int                  `yaml:"cpu_shares,omitempty" `
-	DNS          []string             `yaml:"dns,omitempty" `
-	Domain       []string             `yaml:"dns_search,omitempty" `
-	Entrypoint   string               `yaml:"entrypoint,omitempty" `
-	EnvFile      []string             `yaml:"env_file,omitempty" `
-	Environment  ComposeKV            `yaml:"environment,omitempty" `
-	Expose       []int                `yaml:"expose,omitempty" `
-	Hostname     string               `yaml:"hostname,omitempty" `
-	Image        string               `yaml:"image,omitempty" `
-	Labels       ComposeKV            `yaml:"labels,omitempty" `
-	Links        []string             `yaml:"links,omitempty" `
-	Logging      *ComposeLogging      `yaml:"logging,omitempty" `
-	Memory       int                  `yaml:"mem_limit,omitempty" `
-	Name         string               `yaml:"-" `
-	Network      []string             `yaml:"networks,omitempty" `
-	NetworkMode  string               `yaml:"network_mode,omitempty" `
-	Pid          string               `yaml:"pid,omitempty" `
-	PortMappings []string             `yaml:"ports,omitempty" `
-	Privileged   bool                 `yaml:"privileged,omitempty" `
-	User         string               `yaml:"user,omitempty" `
-	Volumes      []string             `yaml:"volumes,omitempty" `
-	VolumesFrom  []string             `yaml:"volumes_from,omitempty" `
-	WorkDir      string               `yaml:"working_dir,omitempty" `
+	Build        *ComposeBuild   `yaml:"build,omitempty"`
+	Command      string          `yaml:"command,omitempty"`
+	CPU          int             `yaml:"cpu_shares,omitempty"`
+	DNS          []string        `yaml:"dns,omitempty"`
+	Domain       []string        `yaml:"dns_search,omitempty"`
+	Entrypoint   string          `yaml:"entrypoint,omitempty"`
+	EnvFile      []string        `yaml:"env_file,omitempty"`
+	Environment  ComposeKV       `yaml:"environment,omitempty"`
+	Expose       []int           `yaml:"expose,omitempty"`
+	Hostname     string          `yaml:"hostname,omitempty"`
+	Image        string          `yaml:"image,omitempty"`
+	Labels       ComposeKV       `yaml:"labels,omitempty"`
+	Links        []string        `yaml:"links,omitempty"`
+	Logging      *ComposeLogging `yaml:"logging,omitempty"`
+	Memory       int             `yaml:"mem_limit,omitempty"`
+	Name         string          `yaml:"-"`
+	Network      []string        `yaml:"networks,omitempty"`
+	NetworkMode  string          `yaml:"network_mode,omitempty"`
+	Pid          string          `yaml:"pid,omitempty"`
+	PortMappings []string        `yaml:"ports,omitempty"`
+	Privileged   bool            `yaml:"privileged,omitempty"`
+	User         string          `yaml:"user,omitempty"`
+	Volumes      []string        `yaml:"volumes,omitempty"`
+	VolumesFrom  []string        `yaml:"volumes_from,omitempty"`
+	WorkDir      string          `yaml:"working_dir,omitempty"`
 }
 
 // ComposeFormat implements InputFormat and OutputFormat
 type ComposeFormat struct {
 	Version  string                       `yaml:"version"`
-	Services map[string]*ComposeContainer `yaml:"services" `
+	Services map[string]*ComposeContainer `yaml:"services"`
 }
 
 // IngestContainers satisfies InputFormat so docker-compose containers can be ingested

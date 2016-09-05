@@ -399,6 +399,7 @@ func (f EcsFormat) EmitContainers(input *transform.BasePodData) ([]byte, error) 
 		containers = append(containers, EcsContainer)
 	}
 	output.Volumes = mapToVolumes(volumesMap)
+	sort.Sort(output.Volumes)
 
 	sort.Sort(containers)
 	output.ContainerDefinitions = &containers

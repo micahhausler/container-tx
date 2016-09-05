@@ -1,0 +1,16 @@
+sudo: false
+language: go
+
+go:
+- 1.7
+- tip
+
+before_install:
+- go get golang.org/x/tools/cmd/cover
+
+script:
+- go test -coverprofile=compose.out ./compose
+- go tool cover -func=compose.out
+- go test -coverprofile=ecs.out ./ecs
+- go tool cover -func=ecs.out
+- go test -race $(go list ./... | grep -v /vendor/)

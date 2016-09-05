@@ -289,6 +289,8 @@ services:
 
 - [ ] Add tests/CI
 - [ ] Add docker builds to CI
+- [ ] Add a CHANGELOG
+- [ ] Script GitHub releases
 
 ## License
 MIT License. See [License](/LICENSE) for full text
