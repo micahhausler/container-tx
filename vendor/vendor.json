@@ -1,0 +1,37 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "UCxv3FbbHHrmOX4dj4dswcfd6KM=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "6cf5744a041a0022271cefed95ba843f6d87fd51",
+			"revisionTime": "2016-08-16T17:40:47Z"
+		},
+		{
+			"checksumSHA1": "a2yC46a1qsJomgY6rb+FkTFiqmE=",
+			"path": "github.com/davecgh/go-spew/spew/testdata",
+			"revision": "6cf5744a041a0022271cefed95ba843f6d87fd51",
+			"revisionTime": "2016-08-16T17:40:47Z"
+		},
+		{
+			"checksumSHA1": "RZOdTSZN/PgcTqko5LzIAzw+UT4=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "DYaXTB3rqugbG4/U1LapkcI5mz0=",
+			"path": "github.com/stretchrcom/testify/assert",
+			"revision": "d77da356e56a7428ad25149ca77381849a6a5232",
+			"revisionTime": "2016-06-15T09:26:46Z"
+		},
+		{
+			"checksumSHA1": "YzHkxW3fGe5Oc5AVatDNn1g5Ung=",
+			"path": "gopkg.in/check.v1",
+			"revision": "4f90aeace3a26ad7021961c297b22c42160c7b25",
+			"revisionTime": "2016-01-05T16:49:36Z"
+		}
+	],
+	"rootPath": "github.com/micahhausler/container-tx"
+}
