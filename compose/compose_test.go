@@ -1,12 +1,12 @@
 package compose
 
 import (
-	"testing"
 	"os"
+	"testing"
 )
 
-func TestIngestContainers(t *testing.T){
-	cf := ComposeFormat{}
+func TestIngestContainers(t *testing.T) {
+	cf := DockerCompose{}
 
 	f, err := os.Open("./test_fixtures/docker-compose.yaml")
 	if err != nil {
@@ -19,8 +19,8 @@ func TestIngestContainers(t *testing.T){
 	}
 }
 
-func TestEmitContainers(t *testing.T){
-	cf := ComposeFormat{}
+func TestEmitContainers(t *testing.T) {
+	cf := DockerCompose{}
 
 	f, err := os.Open("./test_fixtures/docker-compose.yaml")
 	if err != nil {
@@ -32,7 +32,7 @@ func TestEmitContainers(t *testing.T){
 		t.Errorf("Failed to ingest containers: %s", err)
 	}
 
-	_, err = ComposeFormat{}.EmitContainers(bp)
+	_, err = DockerCompose{}.EmitContainers(bp)
 	if err != nil {
 		t.Errorf("Failed to ingest containers: %s", err)
 	}

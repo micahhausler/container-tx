@@ -3,6 +3,7 @@ package compose
 import (
 	"io"
 	"io/ioutil"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -12,33 +13,34 @@ import (
 
 // UnmarshalYAML implements a custom unmarshal to accommodate both of compose's
 // string and struct formats
-func (cb *ComposeBuild) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var cbc ComposeBuildContext
-	err := unmarshal(&cbc)
+func (b *Build) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var bc BuildContext
+	err := unmarshal(&bc)
 	if err != nil {
 		var ctx string
 		err := unmarshal(&ctx)
 		if err != nil {
 			return err
 		}
-		cbc.Context = ctx
+		bc.Context = ctx
 	}
-	cb.Ctx = cbc
+	b.Ctx = bc
 	return nil
 }
 
-type ComposeBuild struct {
-	Ctx ComposeBuildContext
+// Build is a struct for Compose build info
+type Build struct {
+	Ctx BuildContext
 }
 
-// ComposeBuildContext is a build context type for Compose
-type ComposeBuildContext struct {
+// BuildContext is a build context type for Compose
+type BuildContext struct {
 	Context    string            `yaml:"context,omitempty"`
 	Dockerfile string            `yaml:"dockerfile,omitempty"`
 	Args       map[string]string `yaml:"args,omitempty"`
 }
 
-func (c ComposeContainer) ingestBuild() *transform.BuildContext {
+func (c Container) ingestBuild() *transform.BuildContext {
 	if c.Build != nil {
 		bc := &transform.BuildContext{
 			Context:    c.Build.Ctx.Context,
@@ -50,10 +52,10 @@ func (c ComposeContainer) ingestBuild() *transform.BuildContext {
 	return nil
 }
 
-func (c *ComposeContainer) emitBuild(in *transform.BuildContext) {
+func (c *Container) emitBuild(in *transform.BuildContext) {
 	if in != nil {
-		c.Build = &ComposeBuild{
-			ComposeBuildContext{
+		c.Build = &Build{
+			BuildContext{
 				Context:    in.Context,
 				Dockerfile: in.Dockerfile,
 				Args:       in.Args,
@@ -102,7 +104,7 @@ func parseComposePortMapping(line string) *transform.PortMapping {
 	return pm
 }
 
-func (c ComposeContainer) ingestPortMappings() *transform.PortMappings {
+func (c Container) ingestPortMappings() *transform.PortMappings {
 	if len(c.PortMappings) > 0 {
 		response := transform.PortMappings{}
 		for _, pm := range c.PortMappings {
@@ -113,7 +115,7 @@ func (c ComposeContainer) ingestPortMappings() *transform.PortMappings {
 	return nil
 }
 
-func (c *ComposeContainer) emitPortMappings(mappings *transform.PortMappings) {
+func (c *Container) emitPortMappings(mappings *transform.PortMappings) {
 	if mappings == nil {
 		return
 	}
@@ -144,13 +146,13 @@ func (c *ComposeContainer) emitPortMappings(mappings *transform.PortMappings) {
 	}
 }
 
-// ComposeLogging is a logging type for compose
-type ComposeLogging struct {
+// Logging is a logging type for compose
+type Logging struct {
 	Driver  string
 	Options map[string]string
 }
 
-func (c ComposeContainer) ingestLogging() *transform.Logging {
+func (c Container) ingestLogging() *transform.Logging {
 	if c.Logging != nil {
 		return &transform.Logging{
 			Driver:  c.Logging.Driver,
@@ -160,9 +162,9 @@ func (c ComposeContainer) ingestLogging() *transform.Logging {
 	return nil
 }
 
-func (c *ComposeContainer) emitLogging(l *transform.Logging) {
+func (c *Container) emitLogging(l *transform.Logging) {
 	if l != nil {
-		c.Logging = &ComposeLogging{
+		c.Logging = &Logging{
 			Driver:  l.Driver,
 			Options: l.Options,
 		}
@@ -170,8 +172,8 @@ func (c *ComposeContainer) emitLogging(l *transform.Logging) {
 }
 
 // UnmarshalYAML allows for deserializing compose's "k=v" and "k: v" formats
-func (ckv *ComposeKV) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	err := unmarshal(&ckv.Values)
+func (kv *KV) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	err := unmarshal(&kv.Values)
 	if err != nil {
 		var keyValues []string
 		err = unmarshal(&keyValues)
@@ -187,18 +189,18 @@ func (ckv *ComposeKV) UnmarshalYAML(unmarshal func(interface{}) error) error {
 				response[parts[0]] = ""
 			}
 		}
-		ckv.Values = response
+		kv.Values = response
 	}
 	return nil
 }
 
-// ComposeKV is a special type for Labels and Environment variables
+// KV is a special type for Labels and Environment variables
 // since compose allows "k=v" and "k: v" formats
-type ComposeKV struct {
+type KV struct {
 	Values map[string]string
 }
 
-func (c ComposeContainer) ingestVolumes() *transform.IntermediateVolumes {
+func (c Container) ingestVolumes() *transform.IntermediateVolumes {
 	if len(c.Volumes) > 0 {
 		response := transform.IntermediateVolumes{}
 		for _, vol := range c.Volumes {
@@ -223,7 +225,7 @@ func (c ComposeContainer) ingestVolumes() *transform.IntermediateVolumes {
 	return nil
 }
 
-func (c *ComposeContainer) emitVolumes(vols *transform.IntermediateVolumes) {
+func (c *Container) emitVolumes(vols *transform.IntermediateVolumes) {
 	if vols == nil {
 		return
 	}
@@ -243,63 +245,61 @@ func (c *ComposeContainer) emitVolumes(vols *transform.IntermediateVolumes) {
 	}
 }
 
-// ComposeContainer is a type for deserializing docker-compose containers
-type ComposeContainer struct {
-	Build        *ComposeBuild   `yaml:"build,omitempty"`
-	Command      string          `yaml:"command,omitempty"`
-	CPU          int             `yaml:"cpu_shares,omitempty"`
-	DNS          []string        `yaml:"dns,omitempty"`
-	Domain       []string        `yaml:"dns_search,omitempty"`
-	Entrypoint   string          `yaml:"entrypoint,omitempty"`
-	EnvFile      []string        `yaml:"env_file,omitempty"`
-	Environment  ComposeKV       `yaml:"environment,omitempty"`
-	Expose       []int           `yaml:"expose,omitempty"`
-	Hostname     string          `yaml:"hostname,omitempty"`
-	Image        string          `yaml:"image,omitempty"`
-	Labels       ComposeKV       `yaml:"labels,omitempty"`
-	Links        []string        `yaml:"links,omitempty"`
-	Logging      *ComposeLogging `yaml:"logging,omitempty"`
-	Memory       int             `yaml:"mem_limit,omitempty"`
-	Name         string          `yaml:"-"`
-	Network      []string        `yaml:"networks,omitempty"`
-	NetworkMode  string          `yaml:"network_mode,omitempty"`
-	Pid          string          `yaml:"pid,omitempty"`
-	PortMappings []string        `yaml:"ports,omitempty"`
-	Privileged   bool            `yaml:"privileged,omitempty"`
-	User         string          `yaml:"user,omitempty"`
-	Volumes      []string        `yaml:"volumes,omitempty"`
-	VolumesFrom  []string        `yaml:"volumes_from,omitempty"`
-	WorkDir      string          `yaml:"working_dir,omitempty"`
+// Container is a type for deserializing docker-compose containers
+type Container struct {
+	Build        *Build   `yaml:"build,omitempty"`
+	Command      string   `yaml:"command,omitempty"`
+	CPU          int      `yaml:"cpu_shares,omitempty"`
+	DNS          []string `yaml:"dns,omitempty"`
+	Domain       []string `yaml:"dns_search,omitempty"`
+	Entrypoint   string   `yaml:"entrypoint,omitempty"`
+	EnvFile      []string `yaml:"env_file,omitempty"`
+	Environment  KV       `yaml:"environment,omitempty"`
+	Expose       []int    `yaml:"expose,omitempty"`
+	Hostname     string   `yaml:"hostname,omitempty"`
+	Image        string   `yaml:"image,omitempty"`
+	Labels       KV       `yaml:"labels,omitempty"`
+	Links        []string `yaml:"links,omitempty"`
+	Logging      *Logging `yaml:"logging,omitempty"`
+	Memory       int      `yaml:"mem_limit,omitempty"`
+	Name         string   `yaml:"-"`
+	Network      []string `yaml:"networks,omitempty"`
+	NetworkMode  string   `yaml:"network_mode,omitempty"`
+	Pid          string   `yaml:"pid,omitempty"`
+	PortMappings []string `yaml:"ports,omitempty"`
+	Privileged   bool     `yaml:"privileged,omitempty"`
+	User         string   `yaml:"user,omitempty"`
+	Volumes      []string `yaml:"volumes,omitempty"`
+	VolumesFrom  []string `yaml:"volumes_from,omitempty"`
+	WorkDir      string   `yaml:"working_dir,omitempty"`
 }
 
-// ComposeFormat implements InputFormat and OutputFormat
-type ComposeFormat struct {
-	Version  string                       `yaml:"version"`
-	Services map[string]*ComposeContainer `yaml:"services"`
+// DockerCompose implements InputFormat and OutputFormat
+type DockerCompose struct {
+	Version  string                `yaml:"version"`
+	Services map[string]*Container `yaml:"services"`
 }
 
 // IngestContainers satisfies InputFormat so docker-compose containers can be ingested
-func (f ComposeFormat) IngestContainers(input io.ReadCloser) (*transform.BasePodData, error) {
+func (dc DockerCompose) IngestContainers(input io.ReadCloser) (*transform.PodData, error) {
 
 	body, err := ioutil.ReadAll(input)
 	defer input.Close()
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-	cf := &ComposeFormat{}
-	err = yaml.Unmarshal(body, cf)
+	err = yaml.Unmarshal(body, &dc)
 	if err != nil {
 		return nil, err
 	}
 
-	outputPod := transform.BasePodData{}
-	outputPod.Containers = []*transform.BaseContainerFormat{}
+	outputPod := transform.PodData{}
 
-	for serviceName, container := range cf.Services {
+	containers := transform.Containers{}
 
-		ir := transform.BaseContainerFormat{}
-		outputPod.Containers = append(outputPod.Containers, &ir)
+	for serviceName, container := range dc.Services {
 
+		ir := transform.Container{}
 		ir.Build = container.ingestBuild()
 		ir.Command = container.Command
 		ir.CPU = container.CPU
@@ -325,17 +325,21 @@ func (f ComposeFormat) IngestContainers(input io.ReadCloser) (*transform.BasePod
 		ir.Volumes = container.ingestVolumes()
 		ir.VolumesFrom = container.VolumesFrom
 		ir.WorkDir = container.WorkDir
+		containers = append(containers, ir)
+
 	}
+	sort.Sort(containers)
+	outputPod.Containers = &containers
 	return &outputPod, nil
 }
 
 // EmitContainers satisfies OutputFormat so docker-compose containers can be emitted
-func (f ComposeFormat) EmitContainers(input *transform.BasePodData) ([]byte, error) {
-	output := &ComposeFormat{Version: "2"}
-	output.Services = map[string]*ComposeContainer{}
+func (dc DockerCompose) EmitContainers(input *transform.PodData) ([]byte, error) {
+	output := &DockerCompose{Version: "2"}
+	output.Services = map[string]*Container{}
 
-	for _, container := range input.Containers {
-		composeContainer := ComposeContainer{}
+	for _, container := range *input.Containers {
+		composeContainer := Container{}
 		output.Services[container.Name] = &composeContainer
 
 		composeContainer.emitBuild(container.Build)
@@ -345,11 +349,11 @@ func (f ComposeFormat) EmitContainers(input *transform.BasePodData) ([]byte, err
 		composeContainer.Domain = container.Domain
 		composeContainer.Entrypoint = container.Entrypoint
 		composeContainer.EnvFile = container.EnvFile
-		composeContainer.Environment = ComposeKV{Values: container.Environment}
+		composeContainer.Environment = KV{Values: container.Environment}
 		composeContainer.Expose = container.Expose
 		composeContainer.Hostname = container.Hostname
 		composeContainer.Image = container.Image
-		composeContainer.Labels = ComposeKV{Values: container.Labels}
+		composeContainer.Labels = KV{Values: container.Labels}
 		composeContainer.Links = container.Links
 		composeContainer.emitLogging(container.Logging)
 		composeContainer.Memory = container.Memory

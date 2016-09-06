@@ -1,2 +1,2 @@
-// A package for ingesting and emitting docker-compose files
+// Package compose is for ingesting and emitting docker-compose files
 package compose

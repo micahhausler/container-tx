@@ -20,14 +20,14 @@ var inputType = flag.StringP("input", "i", "compose", "The format of the input."
 var outputType = flag.StringP("output", "o", "ecs", "The format of the output.")
 
 var inputMap = map[string]transform.InputFormat{
-	"compose": compose.ComposeFormat{},
-	"ecs":     ecs.EcsFormat{},
+	"compose": compose.DockerCompose{},
+	"ecs":     ecs.Task{},
 }
 
 var outputMap = map[string]transform.OutputFormat{
-	"compose": compose.ComposeFormat{},
-	"ecs":     ecs.EcsFormat{},
-	"cli":     script.ScriptFormat{},
+	"compose": compose.DockerCompose{},
+	"ecs":     ecs.Task{},
+	"cli":     script.Script{},
 }
 
 func main() {

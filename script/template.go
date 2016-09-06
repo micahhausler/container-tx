@@ -7,7 +7,7 @@ docker run \
     {{ range .DNS -}}
     --dns {{.}} \
     {{end -}}
-    {{ range .Domain }}
+    {{ range .Domain -}}
     --dns-search {{.}} \
     {{end -}}
     {{ if .Entrypoint }}--entrypoint={{.Entrypoint}} \
@@ -62,6 +62,7 @@ docker run \
     {{end -}}
     {{ if .WorkDir }}--workdir={{.WorkDir}} \
     {{end -}}
-    {{.Image}}{{ with .Command }} \
-        {{.}}{{end}}
+    {{.Image }} {{- with .Command }} \
+        {{.}}
+{{- end }}
 `

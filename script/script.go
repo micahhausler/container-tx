@@ -1,8 +1,8 @@
 package script
 
 import (
+	"bytes"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -40,12 +40,12 @@ func stringifyVolume(volume transform.IntermediateVolume) string {
 	return strings.Trim(strings.Join(volStr, ":"), ":")
 }
 
-// ScriptFormat represents a list of docker container run commands.
+// Script represents a list of docker container run commands.
 // It implements OutputFormat
-type ScriptFormat struct{}
+type Script struct{}
 
 // EmitContainers satisfies OutputFormat so ECS tasks can be emitted
-func (f ScriptFormat) EmitContainers(input *transform.BasePodData) ([]byte, error) {
+func (s Script) EmitContainers(input *transform.PodData) ([]byte, error) {
 
 	funcMap := template.FuncMap{
 		"stringifyPort":   stringifyPortMapping,
@@ -54,12 +54,13 @@ func (f ScriptFormat) EmitContainers(input *transform.BasePodData) ([]byte, erro
 
 	t := template.Must(template.New("container").Funcs(funcMap).Parse(dockerRunTemplate))
 
-	for _, c := range input.Containers {
-		err := t.Execute(os.Stdout, c)
+	var buffer bytes.Buffer
+	for _, c := range *input.Containers {
+		err := t.Execute(&buffer, c)
 		if err != nil {
 			log.Println("Error executing template:", err)
 		}
 	}
 
-	return []byte{}, nil
+	return buffer.Bytes(), nil
 }

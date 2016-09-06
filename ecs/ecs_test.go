@@ -1,12 +1,12 @@
 package ecs
 
 import (
-	"testing"
 	"os"
+	"testing"
 )
 
-func TestIngestContainers(t *testing.T){
-	pod := EcsFormat{}
+func TestIngestContainers(t *testing.T) {
+	pod := Task{}
 
 	f, err := os.Open("./test_fixtures/task.json")
 	if err != nil {
@@ -19,8 +19,8 @@ func TestIngestContainers(t *testing.T){
 	}
 }
 
-func TestEmitContainers(t *testing.T){
-	pod := EcsFormat{}
+func TestEmitContainers(t *testing.T) {
+	pod := Task{}
 
 	f, err := os.Open("./test_fixtures/task.json")
 	if err != nil {
@@ -32,7 +32,7 @@ func TestEmitContainers(t *testing.T){
 		t.Errorf("Failed to ingest containers: %s", err)
 	}
 
-	_, err = EcsFormat{}.EmitContainers(bp)
+	_, err = Task{}.EmitContainers(bp)
 	if err != nil {
 		t.Errorf("Failed to ingest containers: %s", err)
 	}

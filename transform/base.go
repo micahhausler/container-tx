@@ -72,8 +72,8 @@ type BuildContext struct {
 	Args       map[string]string
 }
 
-// BaseContainerFormat represents the intermediate format in between input and output formats
-type BaseContainerFormat struct {
+// Container represents the intermediate format in between input and output formats
+type Container struct {
 	Build           *BuildContext
 	Command         string
 	CPU             int // out of 1024
@@ -107,10 +107,19 @@ type BaseContainerFormat struct {
 	WorkDir         string
 }
 
-// BasePodData is the intermediary between each container format
-type BasePodData struct {
+// Containers is for storing and sorting slices of Container
+type Containers []Container
+
+func (cs Containers) Len() int      { return len(cs) }
+func (cs Containers) Swap(i, j int) { cs[i], cs[j] = cs[j], cs[i] }
+func (cs Containers) Less(i, j int) bool {
+	return strings.Compare(cs[i].Name, cs[j].Name) < 0
+}
+
+// PodData is the intermediary between each container format
+type PodData struct {
 	Name         string
-	Containers   []*BaseContainerFormat
+	Containers   *Containers
 	GlobalLabels map[string]string
 	HostNetwork  bool
 	HostPID      bool
@@ -119,10 +128,10 @@ type BasePodData struct {
 
 // InputFormat is an interface for other container formats to ingest containers
 type InputFormat interface {
-	IngestContainers(input io.ReadCloser) (*BasePodData, error)
+	IngestContainers(input io.ReadCloser) (*PodData, error)
 }
 
 // OutputFormat is an interface for other container formats to emit containers
 type OutputFormat interface {
-	EmitContainers(input *BasePodData) ([]byte, error)
+	EmitContainers(input *PodData) ([]byte, error)
 }

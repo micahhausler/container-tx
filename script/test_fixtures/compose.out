@@ -1,0 +1,48 @@
+######## web ########
+docker run \
+    --cpu-shares=200 \
+    --dns 8.8.8.8 \
+    --dns-search cluster.local \
+    --entrypoint=/bin/myapp \
+    --env PGHOST=database.cluster.local \
+    --env PGUSER=postgres \
+    --expose 8080 \
+    --hostname=webserver \
+    --label com.example.department=Finance \
+    --label com.example.description=Accounting webapp \
+    --label com.example.label-with-empty-value= \
+    --log-driver gelf \
+    --log-opt gelf-address=udp://127.0.0.1:12900 \
+    --log-opt tag=web \
+    --memory=67108864b \
+    --name web \
+    --net-alias some-network \
+    --net-alias other-network \
+    --net bridge \
+    --pid host \
+    --publish 127.0.0.1:5000:5000 \
+    --publish 5000:5000 \
+    --publish 5000 \
+    --publish 53:53/udp \
+    --privileged \
+    --user=root \
+    --volume /etc/ssl \
+    --volume /etc/ssl:/etc/ssl:ro \
+    --volume .:/code \
+    --volumes-from worker \
+    alpine \
+        -port 8080
+######## worker ########
+docker run \
+    --label com.example.department=Finance \
+    --label com.example.description=Accounting webapp \
+    --label com.example.label-with-empty-value= \
+    --name worker \
+    
+######## worker2 ########
+docker run \
+    --label com.example.department=Finance \
+    --label com.example.description=Accounting webapp \
+    --label com.example.label-with-empty-value= \
+    --name worker2 \
+    
