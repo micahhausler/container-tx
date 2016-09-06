@@ -24,6 +24,12 @@ Future support is planned for:
 
 This is a re-implementation of [container-transform](https://github.com/micahhausler/container-transform) in go.
 
+## Install
+
+```
+go get -u github.com/micahhausler/container-tx
+```
+
 ## Usage
 
 ```
@@ -294,6 +300,7 @@ services:
 - [ ] Add docker builds to CI
 - [ ] Add a CHANGELOG
 - [ ] Script GitHub releases
+- [ ] Add Homebrew recipe
 
 ## License
 MIT License. See [License](/LICENSE) for full text
