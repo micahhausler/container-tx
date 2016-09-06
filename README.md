@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/micahhausler/container-tx.svg)](https://travis-ci.org/micahhausler/container-tx)
+[![https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square](https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](http://godoc.org/github.com/micahhausler/container-tx/)
+
 # container-tx
 
 container-tx is a small utility to transform various docker container
