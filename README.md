@@ -44,9 +44,9 @@ Usage of ./container-tx: [flags] <file>
 
 ## Examples
 
-* [Compose --> ECS](#docker-compose to ECS Task)
-* [Compose --> CLI](#docker-compose to docker cli)
-* [ECS --> Compose](#ECS to Compose)
+* [Compose --> ECS](#docker-compose-to-ecs-Task)
+* [Compose --> CLI](#docker-compose-to-docker-cli)
+* [ECS --> Compose](#ecs-to-compose)
 
 ### docker-compose to ECS Task
 
