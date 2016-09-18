@@ -7,6 +7,7 @@ import (
 
 	"github.com/micahhausler/container-tx/compose"
 	"github.com/micahhausler/container-tx/ecs"
+	"github.com/micahhausler/container-tx/k8s"
 	"github.com/micahhausler/container-tx/script"
 	"github.com/micahhausler/container-tx/transform"
 	flag "github.com/ogier/pflag"
@@ -22,6 +23,7 @@ var outputType = flag.StringP("output", "o", "ecs", "The format of the output.")
 var inputMap = map[string]transform.InputFormat{
 	"compose": compose.DockerCompose{},
 	"ecs":     ecs.Task{},
+	"k8s":     k8s.Pod{},
 }
 
 var outputMap = map[string]transform.OutputFormat{

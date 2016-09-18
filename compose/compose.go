@@ -200,6 +200,11 @@ type KV struct {
 	Values map[string]string
 }
 
+// MarshalYAML serializes the KV struct's Value field to a map
+func (kv *KV) MarshalYAML() (interface{}, error) {
+	return kv.Values, nil
+}
+
 func (c Container) ingestVolumes() *transform.IntermediateVolumes {
 	if len(c.Volumes) > 0 {
 		response := transform.IntermediateVolumes{}
@@ -254,11 +259,11 @@ type Container struct {
 	Domain       []string `yaml:"dns_search,omitempty"`
 	Entrypoint   string   `yaml:"entrypoint,omitempty"`
 	EnvFile      []string `yaml:"env_file,omitempty"`
-	Environment  KV       `yaml:"environment,omitempty"`
+	Environment  *KV      `yaml:"environment,omitempty"`
 	Expose       []int    `yaml:"expose,omitempty"`
 	Hostname     string   `yaml:"hostname,omitempty"`
 	Image        string   `yaml:"image,omitempty"`
-	Labels       KV       `yaml:"labels,omitempty"`
+	Labels       *KV      `yaml:"labels,omitempty"`
 	Links        []string `yaml:"links,omitempty"`
 	Logging      *Logging `yaml:"logging,omitempty"`
 	Memory       int      `yaml:"mem_limit,omitempty"`
@@ -307,11 +312,15 @@ func (dc DockerCompose) IngestContainers(input io.ReadCloser) (*transform.PodDat
 		ir.Domain = container.Domain
 		ir.Entrypoint = container.Entrypoint
 		ir.EnvFile = container.EnvFile
-		ir.Environment = container.Environment.Values
+		if container.Environment != nil {
+			ir.Environment = container.Environment.Values
+		}
 		ir.Expose = container.Expose
 		ir.Hostname = container.Hostname
 		ir.Image = container.Image
-		ir.Labels = container.Labels.Values
+		if container.Labels != nil {
+			ir.Labels = container.Labels.Values
+		}
 		ir.Links = container.Links
 		ir.Logging = container.ingestLogging()
 		ir.Memory = container.Memory
@@ -349,11 +358,11 @@ func (dc DockerCompose) EmitContainers(input *transform.PodData) ([]byte, error)
 		composeContainer.Domain = container.Domain
 		composeContainer.Entrypoint = container.Entrypoint
 		composeContainer.EnvFile = container.EnvFile
-		composeContainer.Environment = KV{Values: container.Environment}
+		composeContainer.Environment = &KV{Values: container.Environment}
 		composeContainer.Expose = container.Expose
 		composeContainer.Hostname = container.Hostname
 		composeContainer.Image = container.Image
-		composeContainer.Labels = KV{Values: container.Labels}
+		composeContainer.Labels = &KV{Values: container.Labels}
 		composeContainer.Links = container.Links
 		composeContainer.emitLogging(container.Logging)
 		composeContainer.Memory = container.Memory

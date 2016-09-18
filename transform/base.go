@@ -99,12 +99,12 @@ type Container struct {
 	PortMappings    *PortMappings
 	Privileged      bool
 	PullImagePolicy string
-	Replicas        int
-	StopSignal      string
-	User            string
-	Volumes         *IntermediateVolumes
-	VolumesFrom     []string // todo make a struct
-	WorkDir         string
+	//Replicas        int
+	StopSignal  string
+	User        string
+	Volumes     *IntermediateVolumes
+	VolumesFrom []string // todo make a struct
+	WorkDir     string
 }
 
 // Containers is for storing and sorting slices of Container
