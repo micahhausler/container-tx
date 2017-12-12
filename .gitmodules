@@ -1,0 +1,9 @@
+[submodule "vendor/github.com/sergi/go-diff"]
+	path = vendor/github.com/sergi/go-diff
+	url = https://github.com/sergi/go-diff.git
+[submodule "vendor/github.com/ogier/pflag"]
+	path = vendor/github.com/ogier/pflag
+	url = https://github.com/ogier/pflag.git
+[submodule "vendor/gopkg.in/yaml.v2"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://github.com/go-yaml/yaml.git
